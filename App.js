@@ -4,12 +4,15 @@ import fetchLocationId from './services/api';
 
 export default class App extends Component {
   
-
   state = { valTemp: "", woeid: null, txtCidade: null};
 
   changeValTemp = async () =>  {
     //let woeid = fetchLocationId("London");
     //let cidade = "london"
+    if(this.state.txtCidade === null){
+      this.setState({ valTemp: "Campo de busca não preenchido" })
+      return null;
+    }  
     const locations = await fetch(
       `https://www.metaweather.com/api/location/search/?query=${this.state.txtCidade}`,
     ).then((response) => response.json())
@@ -20,7 +23,8 @@ export default class App extends Component {
       ).then((rexponse) => rexponse.json())
       .then((rexponseJson) => {
         console.log(rexponseJson.consolidated_weather[0])
-        this.setState({ valTemp: rexponseJson.consolidated_weather[0].max_temp })
+        let valTemp = Math.floor(rexponseJson.consolidated_weather[0].max_temp) + "ºc"
+        this.setState({ valTemp })
       }
 
       );
@@ -86,6 +90,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     marginTop: 20
+  },
+  error: {
+    fontSize: 15,
+    fontWeight: "bold",
+    color: "#f00"
   },
   valTemp: {
     fontSize: 35,
