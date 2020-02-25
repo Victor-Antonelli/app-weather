@@ -1,30 +1,36 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, View, TextInput, KeyboardAvoidingView, TouchableOpacity } from 'react-native';
-import fetchLocationId from './services/api';
+//import fetchLocationId from './services/api';
 
 export default class App extends Component {
   
-  state = { valTemp: "", woeid: null, txtCidade: null};
+  state = { valTempMax: "", valTempMin: "", woeid: null, txtCidade: null, error: null };
 
   changeValTemp = async () =>  {
-    //let woeid = fetchLocationId("London");
-    //let cidade = "london"
+    
     if(this.state.txtCidade === null){
-      this.setState({ valTemp: "Campo de busca não preenchido" })
+      this.setState({ error: "Campo de busca não preenchido" })
       return null;
     }  
     const locations = await fetch(
       `https://www.metaweather.com/api/location/search/?query=${this.state.txtCidade}`,
     ).then((response) => response.json())
     .then((responseJson) => {
+      
+      if(!responseJson[0]){
+        this.setState({ error: "Cidade não encontrada!" })
+        return null;
+      }
+      
       this.setState({ woeid: responseJson[0].woeid })
       const response = fetch(
         `https://www.metaweather.com/api/location/${this.state.woeid}/`,
       ).then((rexponse) => rexponse.json())
       .then((rexponseJson) => {
-        console.log(rexponseJson.consolidated_weather[0])
-        let valTemp = Math.floor(rexponseJson.consolidated_weather[0].max_temp) + "ºc"
-        this.setState({ valTemp })
+        
+        let valTempMax = "Máxima de: " + Math.floor(rexponseJson.consolidated_weather[0].max_temp) + "ºc";
+        let valTempMin = "Mínima de: " + Math.floor(rexponseJson.consolidated_weather[0].min_temp) + "ºc";
+        this.setState({ valTempMax, valTempMin  })
       }
 
       );
@@ -42,7 +48,9 @@ export default class App extends Component {
             <Text>Pesquisar</Text>
           </TouchableOpacity>
           <View style={styles.tempDisplay}>
-            <Text style={styles.valTemp}>{this.state.valTemp}</Text>
+            <Text style={styles.valTemp}>{this.state.valTempMax}</Text>
+            <Text style={styles.valTemp}>{this.state.valTempMin}</Text>
+            <Text style={styles.error}>{this.state.error}</Text>
           </View>
         </KeyboardAvoidingView> 
       </View>
@@ -97,7 +105,7 @@ const styles = StyleSheet.create({
     color: "#f00"
   },
   valTemp: {
-    fontSize: 35,
+    fontSize: 25,
     fontWeight: "bold"
   }
   
